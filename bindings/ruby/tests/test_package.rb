@@ -8,6 +8,7 @@ class TestPackage < Test::Unit::TestCase
     Tempfile.create do |file|
       assert system("gem", "build", "whispercpp.gemspec", "--output", file.to_path.shellescape, exception: true)
       assert file.size > 0
+      assert_path_exist file.to_path
     end
   end
 
@@ -17,11 +18,13 @@ class TestPackage < Test::Unit::TestCase
     end
 
     def test_install
-      filename = `rake -Tbuild`.match(/(whispercpp-(?:.+)\.gem)/)[1]
+      match_data = `rake -Tbuild`.match(/(whispercpp-(.+)\.gem)/)
+      filename = match_data[1]
+      version = match_data[2]
       basename = "whisper.#{RbConfig::CONFIG["DLEXT"]}"
       Dir.mktmpdir do |dir|
         system "gem", "install", "--install-dir", dir.shellescape, "pkg/#{filename.shellescape}", exception: true
-        assert_path_exist File.join(dir, "gems/whispercpp-1.3.0/lib", basename)
+        assert_path_exist File.join(dir, "gems/whispercpp-#{version}/lib", basename)
       end
     end
   end
